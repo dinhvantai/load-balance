@@ -1,0 +1,17 @@
+{
+  "name": "template-admin-vue",
+  "description": "",
+  "main": "",
+  "license": "MIT",
+  "homepage": "https://github.com/dinhvantai/template-admin-vue",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "responsive-filemanager": "https://github.com/dinhvantai/responsive-filemanager.git"
+  }
+}
