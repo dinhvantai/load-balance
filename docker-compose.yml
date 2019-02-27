@@ -1,0 +1,118 @@
+version: '2'
+
+services:
+  nginx-master:
+    container_name: camera-nginx-master
+    restart: always
+    image: nginx
+    ports:
+      - "8800:80"
+    links:
+      - nginx-backend-one
+      - nginx-backend-two
+    volumes:
+      - ./nginx-conf/master:/etc/nginx/conf.d
+
+  application-one:
+    container_name: camera-application-one
+    image: debian
+    volumes:
+      - ./camera1:/var/www/laravel
+  workspace-one:
+    container_name: camera-workspace-one
+    restart: always
+    image: dinhtai/laravel-workspace
+    volumes_from:
+      - application-one
+    tty: true
+  php-fpm-one:
+    container_name: camera-php-fpm-one
+    restart: always
+    image: dinhtai/laravel-php-fpm
+    volumes_from:
+      - application-one
+    expose:
+      - "9000"
+    links:
+      - workspace-one
+  nginx-backend-one:
+    container_name: camera-nginx-backend-one
+    restart: always
+    image: dinhtai/laravel-nginx
+    volumes:
+      - ./nginx-conf/backend-1:/etc/nginx/conf.d
+    volumes_from:
+      - application-one
+    ports:
+      - "1111:80"
+    links:
+      - php-fpm-one
+
+  application-two:
+    container_name: camera-application-two
+    image: debian
+    volumes:
+      - ./camera2:/var/www/laravel
+  workspace-two:
+    container_name: camera-workspace-two
+    restart: always
+    image: dinhtai/laravel-workspace
+    volumes_from:
+      - application-two
+    tty: true
+  php-fpm-two:
+    container_name: camera-php-fpm-two
+    restart: always
+    image: dinhtai/laravel-php-fpm
+    volumes_from:
+      - application-two
+    expose:
+      - "9000"
+    links:
+      - workspace-two
+  nginx-backend-two:
+    container_name: camera-nginx-backend-two
+    restart: always
+    image: dinhtai/laravel-nginx
+    volumes:
+      - ./nginx-conf/backend-2:/etc/nginx/conf.d
+    volumes_from:
+      - application-two
+    ports:
+      - "2222:80"
+    links:
+      - php-fpm-two
+  data:
+    container_name: camera-data
+    image: debian
+    volumes:
+      - .docker/mysql:/var/lib/mysql
+      - .docker/data:/data
+  logs:
+    container_name: camera-logs
+    image: debian
+    volumes:
+      - .docker/logs/nginx:/var/log/nginx
+      - .docker/logs/mongodb:/var/log/mongodb
+  mysql:
+    container_name: camera-mysql
+    restart: always
+    image: mysql:5.7
+    volumes_from:
+      - data
+      - logs
+    expose:
+      - "3306"
+    environment:
+      MYSQL_DATABASE: camera
+      MYSQL_USER: camera
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: root
+  redis:
+    container_name: camera-redis
+    restart: always
+    image: redis
+    expose:
+      - "6379"
+    volumes_from:
+      - data
