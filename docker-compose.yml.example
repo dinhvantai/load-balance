@@ -1,0 +1,49 @@
+version: '3'
+
+services:
+  workspace:
+    container_name: hairstyle_workspace
+    restart: always
+    image: dinhtai/laravel-workspace
+    volumes:
+      - ./:/var/www/laravel
+    tty: true
+  php-fpm:
+    container_name: hairstyle_php-fpm
+    restart: always
+    image: dinhtai/laravel-php-fpm
+    volumes:
+      - ./:/var/www/laravel
+    expose:
+      - "9000"
+  nginx-backend:
+    container_name: hairstyle_nginx
+    restart: always
+    image: dinhtai/laravel-nginx
+    volumes:
+      - ./:/var/www/laravel
+    ports:
+      - "2200:80"
+    links:
+      - php-fpm
+  mysql:
+    container_name: hairstyle_mysql
+    restart: always
+    image: mysql:5.7
+    volumes:
+      - .docker/mysql:/var/lib/mysql
+    expose:
+      - "3306"
+    environment:
+      MYSQL_DATABASE: hairstyle
+      MYSQL_USER: hairstyle
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: root
+  redis:
+    container_name: hairstyle_redis
+    restart: always
+    image: redis
+    expose:
+      - "6379"
+    volumes:
+      - .docker/redis:/data
